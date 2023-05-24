@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  nginx:
+    build:
+      context: ./docker/images
+      dockerfile: NGINX.Dockerfile
+    working_dir: /var/www/html
+    container_name: real_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./projects:/var/www/html
+      - ./docker/logs/nginx_log:/var/log/nginx
+      - ./docker/config/nginx/project1.conf:/etc/nginx/conf.d/project1.conf
+      - ./docker/config/nginx/project2.conf:/etc/nginx/conf.d/project2.conf
+    links:
+      - php
+      - mysql
+
+  php:
+    build:
+      context: ./docker/images
+      dockerfile: PHP.Dockerfile
+    container_name: real_php
+    volumes:
+      - ./projects:/var/www/html
+      - ./docker/logs/php-fpm/php-fpm.log:/var/log/php-fpm.log
+      - ./docker/config/php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+
+  mysql:
+    build:
+      context: ./docker/images
+      dockerfile: MYSQL.Dockerfile
+    container_name: real_mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
